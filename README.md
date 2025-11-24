@@ -1,11 +1,5 @@
 # Video-Object-Detection-LAB-2-Assignment
 This GitHub was made for the LAB 2 Assignment of the signature Deep Learning for Video Signal Processing. The main objective of this repository is to install correctly the official implementation MEGA approach on Pytorch for Video Object Detection in the laboratory computers.
-He estructurado la guía para que quien la lea vaya directamente a la solución que funciona (el "Golden Path"), explicando los cambios técnicos necesarios.
-# Lab 2 — Session 1: MEGA & BASE Models
-
-## Deep Learning for Video Signal Processing
-
-This repository contains the work developed for **Lab 2 — Session 1**. The main objective is to set up, debug, and successfully run the **BASE** and **MEGA** object detection models from the CVPR 2020 paper *Memory Enhanced Global-Local Aggregation for Video Object Detection*.
 
 The original GitHub repository used in this assignment is available at: [https://github.com/Scalsol/mega.pytorch](https://github.com/Scalsol/mega.pytorch)
 
