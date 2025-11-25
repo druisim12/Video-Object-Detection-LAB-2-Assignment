@@ -33,9 +33,9 @@ source activate MEGA
 conda install ipython pip
 pip install ninja yacs cython matplotlib tqdm opencv-python scipy
 
-# 3. Install PyTorch 1.6.0 and TorchVision 0.7.0
-# (Note: We use this version to resolve compilation errors found in 1.2/1.3)
-conda install pytorch==1.6.0 torchvision==0.7.0 cudatoolkit=10.0 -c pytorch
+# 3. Install PyTorch 1.2.0 and TorchVision
+# (Note: We use this version to resolve compilation errors found)
+conda install pytorch==1.2.0 torchvision cudatoolkit=10.0 -c pytorch
 ```
 
 ### 2.2. Install COCO API and Cityscapes Scripts
@@ -64,12 +64,12 @@ We use the standard build flags to avoid the specific CUDA extension failure fou
 cd $INSTALL_DIR
 git clone https://github.com/NVIDIA/apex.git
 cd apex
-python setup.py build_ext install
+
 ```
 
 ### 2.4. Clone and Patch MEGA Repository
 
-Before installing MEGA, a syntax error in setup.py regarding type hinting must be fixed to support Python 3.7.
+Before installing MEGA, a syntax error in setup.py regarding type hinting must be fixed to support Python 3.7. So to fix this error, copy the file setup.py into the apex folder. This file contains the next lines to fix the problem (if you copy the file you don't need to change nothing, but just in case this could help). 
 
 ```python
 # In mega.pytorch/setup.py
@@ -78,8 +78,12 @@ from typing import Union
 parallel: Union[int, None] = None
 ```
 
-Once fixed, install the library:
+Once fixed, execute the next line:
+```bash
+python setup.py build_ext install
+```
 
+Now, we want to install MEGA Pytorch:
 ```bash
 cd $INSTALL_DIR
 git clone https://github.com/Scalsol/mega.pytorch.git
@@ -87,64 +91,80 @@ cd mega.pytorch
 python setup.py build develop
 pip install 'pillow<7.0.0'
 ```
+### 2.5. Changing Pytorch and torchvision versions
+Now that we have the MEGA models installed, we need to upgrade our pytorch and torchvision versions so we don't have any problem in the execution.
+For that, you need to follow the next steps:
 
+-Step 1: Reinstall pytorch to have version 1.6 and torchvision 0.7
+```bash
+unset INSTALL_DIR
+pip uninstall -y torchvision
+conda install pytorch==1.6.0 torchvision==0.7.0 cudatoolkit=10.0 -c pytorch
+```
+
+-Step 2: Rebuild MEGA core.
+```bash
+cd ~/mega.pytorch
+rm -rf build/ mega_core/_C.*.so
+python setup.py build develop
+```
+
+-Step 3: Reinstall Apex and rebuild MEGA again to skip errors.
+```bash
+pip uninstall -y apex
+rm -rf build/ mega_core/_C.*.so
+python setup.py build develop
+```
 ---
-
 ## 3. Required Code Modifications
 
-Even after installation, several runtime errors occur due to missing CUDA devices (if running on CPU) and strict OpenCV type requirements. The following modifications are required in your local files.
+Even after installation and upgrade of the system, several runtime errors occur due to missing CUDA devices (if running on CPU like us) and strict OpenCV type requirements. The following modifications are required in your local files.
 
 ### 3.1. Make Apex/AMP Optional
 
-Several MEGA modules assume Apex is always installed. To prevent crashes, we modified the following files to check for Apex presence dynamically:
+Several MEGA modules assume Apex is always installed. To prevent crashes and errors, we modified the following files to check for Apex presence dynamically. This files can be found in this repository. Copy them into the directories that are shown:
 
-* `mega_core/layers/nms.py`
-* `mega_core/layers/roi_align.py`
-* `mega_core/layers/roi_pool.py`
+* `/mega.pytorch/mega_core/layers/nms.py`
+* `/mega.pytorch/mega_core/layers/roi_align.py`
+* `/mega.pytorch/mega_core/layers/roi_pool.py`
 
-**Action:** Wrap imports in try-except blocks and only apply `@amp.float_function` if Apex is successfully loaded.
 
-### 3.2. Fix OpenCV Coordinates
-
-In `demo/predictor.py`, OpenCV throws errors if float coordinates are passed to drawing functions.
-
-**Action:** In `overlay_class_names`, cast coordinates to integers:
-
-```python
-cv2.putText(img, class_str, (int(x), int(y)), ...)
-```
-
-### 3.3. CPU Configuration
-
-If running without a GPU, modify the YAML configuration files to set:
-
-```yaml
-DEVICE: "cpu"
-```
-
----
-
-## 4. Model & Data Setup
+### 3.2 Model & Data Setup
 
 Download the required resources and place them in the root of `mega.pytorch`.
 
-* **Image Folder:** Download `image_folder.zip` (from Moodle), unzip it, and place the `image_folder` directory inside `mega.pytorch`.
+* **Image Folder:** Download `image_folder`, and place it in the directory inside `mega.pytorch`.
 * **Checkpoints:** Download the pre-trained models:
 
   * Single Frame Baseline (ResNet‑101): `R_101.pth`
   * MEGA (ResNet‑101): `MEGA_R_101.pth`
+    
 * **Configs:** Ensure you use the CPU‑adapted YAML files:
 
-  * `configs/vid_R_101_C4_1x.yaml`
-  * `configs/MEGA/vid_R_101_C4_MEGA_1x.yaml`
+  * `/mega.pytorch/configs/vid_R_101_C4_1x.yaml`
+  * `/mega.pytorch/configs/MEGA/vid_R_101_C4_MEGA_1x.yaml`
+### 3.3. Fix OpenCV Coordinates inside predictor.py
 
+Replace `predictor.py` in the folder `/mega.pytorch/demo/`, OpenCV throws errors if float coordinates are passed to drawing functions. Then, execute this code:
+
+```bash
+rm -rf build/ mega_core/_C.*.so
+python setup.py build develop
+```
+
+### 3.4. CPU Configuration
+
+All of our testing is to run on the CPU. We used this to evade any additional gpu problems. If you want to edit it to run on a GPU, modify the YAML configuration files to change the device, but we cannot guarantee that it will work. 
+
+```yaml
+DEVICE: "cpu"
+```
 ---
-
-## 5. Running the Demo
+## 4. Running the Demo
 
 Once the environment is set up and files are patched, run the inference on the image folder.
 
-### 5.1. Run BASE Model
+### 4.1. Run BASE Model
 
 ```bash
 python demo/demo.py base configs/vid_R_101_C4_1x.yaml R_101.pth \
@@ -153,7 +173,7 @@ python demo/demo.py base configs/vid_R_101_C4_1x.yaml R_101.pth \
     --output-folder outputs_base
 ```
 
-### 5.2. Run MEGA Model
+### 4.2. Run MEGA Model
 
 ```bash
 python demo/demo.py mega configs/MEGA/vid_R_101_C4_MEGA_1x.yaml MEGA_R_101.pth \
@@ -163,8 +183,17 @@ python demo/demo.py mega configs/MEGA/vid_R_101_C4_MEGA_1x.yaml MEGA_R_101.pth \
 ```
 
 ---
+## 5. End of guide.
+
+If you encounter any issues during the instalation, it could be the build. Try to do a rebuild of MEGA with:
+```bash
+rm -rf build/ mega_core/_C.*.so
+python setup.py build develop
+```
 
 ## 6. Report: Summary of Issues & Solutions
+
+This part is the information about the procedure of this installation. If any of the things in this guide went wrong, you could use this as a second guide.
 
 We started by following the official INSTALL.md. However, incompatible libraries and syntax errors forced us to deviate from the original instructions.
 
@@ -178,25 +207,22 @@ The assignment requested PyTorch 1.2, and the repo suggested 1.3. Both versions 
 
 The instruction `python setup.py install --cuda_ext --cpp_ext` failed due to CUDA mismatches.
 
-**Solution:** Installed with `python setup.py build_ext install`.
+**Solution:** Installed with `python setup.py build_ext install` after editing the `setup.py` with Union library, after detecting syntax errors caused by the usage of different library versions.
 
-### 6.3. Python Syntax Error
+**Code Solution:** The repository used the `| None` syntax, only valid in Python 3.10. Replaced by `Union[int, None]` using imported Union library.
 
-The repository used the `| None` syntax, only valid in Python 3.10.
+### 6.3. Apex Hard Dependency
 
-**Solution:** Replaced by `Union[int, None]`.
+Modules crashed when Apex wasn't available (even if it was installed).
 
-### 6.4. Apex Hard Dependency
+**Solution:** Modified MEGA `YAML` modules to make Apex optional.
 
-Modules crashed when Apex wasn't available.
+### 6.4. OpenCV Integer Coordinates
 
-**Solution:** Modified MEGA modules to make Apex optional.
+In the predictor, `cv2.putText` failed because floats were passed.
 
-### 6.5. OpenCV Integer Coordinates
-
-`cv2.putText` failed because floats were passed.
-
-**Solution:** Cast all coordinates to `int()`.
+**Solution:** In overlay_class_names, cast coordinates to integers.
+```cv2.putText(img, class_str, (int(x), int(y)), ...)```
 
 ---
 
