@@ -68,7 +68,7 @@ cd apex
 
 ### 2.4. Clone and Patch MEGA Repository
 
-Before installing MEGA, a syntax error in setup.py regarding type hinting must be fixed to support Python 3.7. So to fix this error, copy the file setup.py into the apex folder. This file contains the next lines to fix the problem (if you copy the file you don't need to change nothing, but just in case this could help). 
+Before installing MEGA, a syntax error in setup.py regarding type hinting must be fixed to support Python 3.7. So to fix this error, copy the file `/apex/setup.py` into the apex folder. This file contains the next lines to fix the problem (if you copy the file you don't need to change nothing, but just in case this could help). 
 
 ```python
 # In mega.pytorch/setup.py
@@ -153,7 +153,7 @@ python setup.py build develop
 
 ### 3.4. CPU Configuration
 
-All of our testing is to run on the CPU. We used this to evade any additional gpu problems. If you want to edit it to run on a GPU, modify the YAML configuration files to change the device, but we cannot guarantee that it will work. 
+All of our testing was to run on the CPU. We used this to evade any additional gpu problems. If you want to edit it to run on a GPU, modify the YAML configuration files to change the device, but we cannot guarantee that it will work by itself, so necessary changes may be needed. 
 
 ```yaml
 DEVICE: "cpu"
@@ -169,7 +169,7 @@ Once the environment is set up and files are patched, run the inference on the i
 python demo/demo.py base configs/vid_R_101_C4_1x.yaml R_101.pth \
     --suffix ".JPEG" \
     --visualize-path image_folder \
-    --output-folder outputs_base
+    --output-folder output_base
 ```
 
 ### 4.2. Run MEGA Model
@@ -178,7 +178,7 @@ python demo/demo.py base configs/vid_R_101_C4_1x.yaml R_101.pth \
 python demo/demo.py mega configs/MEGA/vid_R_101_C4_MEGA_1x.yaml MEGA_R_101.pth \
     --suffix ".JPEG" \
     --visualize-path image_folder \
-    --output-folder outputs_mega
+    --output-folder output_mega
 ```
 
 ---
