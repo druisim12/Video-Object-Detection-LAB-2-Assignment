@@ -22,7 +22,7 @@ To avoid the multiple errors encountered during the original installation proces
 
 ### 2.1. Environment Setup
 
-Create a clean Conda environment with Python 3.7. We use specific versions of PyTorch and TorchVision (1.6.0 / 0.7.0) instead of the older suggestions to ensure the C++ extensions compile correctly.
+Create a clean Conda environment with Python 3.7. We use specific versions of PyTorch (1.2.0) instead of the older suggestions to ensure the C++ extensions compile correctly.
 
 ```bash
 # 1. Create and activate environment
@@ -35,7 +35,7 @@ pip install ninja yacs cython matplotlib tqdm opencv-python scipy
 
 # 3. Install PyTorch 1.2.0 and TorchVision
 # (Note: We use this version to resolve compilation errors found)
-conda install pytorch==1.2.0 torchvision cudatoolkit=10.0 -c pytorch
+conda install pytorch=1.2.0 torchvision cudatoolkit=10.0 -c pytorch
 ```
 
 ### 2.2. Install COCO API and Cityscapes Scripts
@@ -64,7 +64,6 @@ We use the standard build flags to avoid the specific CUDA extension failure fou
 cd $INSTALL_DIR
 git clone https://github.com/NVIDIA/apex.git
 cd apex
-
 ```
 
 ### 2.4. Clone and Patch MEGA Repository
@@ -109,7 +108,7 @@ rm -rf build/ mega_core/_C.*.so
 python setup.py build develop
 ```
 
--Step 3: Reinstall Apex and rebuild MEGA again to skip errors.
+-Step 3: Uninstall Apex and rebuild MEGA again to skip posible errors.
 ```bash
 pip uninstall -y apex
 rm -rf build/ mega_core/_C.*.so
@@ -136,8 +135,8 @@ Download the required resources and place them in the root of `mega.pytorch`.
 * **Image Folder:** Download `image_folder`, and place it in the directory inside `mega.pytorch`.
 * **Checkpoints:** Download the pre-trained models:
 
-  * Single Frame Baseline (ResNet‑101): `R_101.pth`
-  * MEGA (ResNet‑101): `MEGA_R_101.pth`
+  * Single Frame Baseline (ResNet‑101): `R_101.pth` found in ```https://drive.google.com/file/d/1W17f9GC60rHU47lUeOEfU--Ra-LTw3Tq/view```
+  * MEGA (ResNet‑101): `MEGA_R_101.pth` found in ```https://drive.google.com/file/d/1ZnAdFafF1vW9Lnpw-RPF1AD_csw61lBY/view```
     
 * **Configs:** Ensure you use the CPU‑adapted YAML files:
 
@@ -193,7 +192,7 @@ python setup.py build develop
 
 ## 6. Report: Summary of Issues & Solutions
 
-This part is the information about the procedure of this installation. If any of the things in this guide went wrong, you could use this as a second guide.
+This part is the information about the procedure of this installation. If any of the things in the previous guide went wrong, you could use this as a secondary guide.
 
 We started by following the official INSTALL.md. However, incompatible libraries and syntax errors forced us to deviate from the original instructions.
 
@@ -201,7 +200,7 @@ We started by following the official INSTALL.md. However, incompatible libraries
 
 The assignment requested PyTorch 1.2, and the repo suggested 1.3. Both versions caused compilation errors with MEGA core extensions.
 
-**Solution:** Upgraded to **PyTorch 1.6.0** and **TorchVision 0.7.0**.
+**Solution:** Installed firstly the PyTorch 1.2 version and then upgraded to **PyTorch 1.6.0** and **TorchVision 0.7.0** after installing MEGA.
 
 ### 6.2. Apex Installation
 
